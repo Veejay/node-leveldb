@@ -1,0 +1,10 @@
+{
+  "name": "leveldb-testing",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "leveldown": "^3.0.0",
+    "levelup": "^2.0.2"
+  }
+}
