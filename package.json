@@ -6,5 +6,12 @@
   "devDependencies": {
     "leveldown": "^3.0.0",
     "levelup": "^2.0.2"
+  },
+  "dependencies": {
+    "level": "^3.0.0",
+    "level-sublevel": "^6.6.1",
+    "through2": "^2.0.3",
+    "through2-map": "^3.0.0",
+    "uuid": "^3.2.1"
   }
 }

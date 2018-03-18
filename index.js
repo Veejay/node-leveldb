@@ -1,35 +1,84 @@
-const levelup = require('levelup')
+const levelup = require('level')
 const leveldown = require('leveldown')
-const { StringDecoder } = require('string_decoder');
-
-
-const main = async () => {
-  const decoder = new StringDecoder('utf8');
-  const db = levelup(leveldown('./mydb'))
-  await db.put('posts/234', 'blah')
-  await db.put('post/345', 'foobar')
-  await db.put('users/1233', 'Big Shaq')
-  await db.put('users/1234', JSON.stringify({nickname: 'King James', firstName: "Lebron", last_name: "James", number: 23}))
-  await db.put('users/1235', 'Big Man Lukaku')
-  await db.put('users/1236', 'Akinfenwa')
-  const users = User.where(db, {gte: 'users/1233', lte: 'users/1235'})
-  users.on('data', user => {
-    const {key, value} = user
-    const [k,v] = [key, value].map(e => decoder.write(e))
-    console.log(k,v)
-  })  
+const sublevel = require('level-sublevel')
+const uuid = require('uuid')
+const through2 = require('through2')
+class Model {
+  constructor(name) {
+    this.name = name
+    this.db = sublevel(levelup('./db', {valueEncoding: 'json'})).sublevel(name)
+  }
+  get all() {
+    return this.db.createReadStream({
+      gt: `${this.name}`,
+      lt: `${this.name}:~`
+    })
+  }
+  find(id) {
+    return this.db.get(id)
+  }
+  where(criteria) {
+    return this.all
+  }
+  pluck(attribute) {
+    // Get all the users
+    return this.db.createValueStream().pipe(through2.obj(function(chunk, encoding, callback){
+      this.push(chunk[attribute])
+      callback()  
+    }))
+  }
+  create(data) {
+    const id = uuid.v4()
+    return new Promise((resolve, reject) => {
+      const value = Object.assign(data, {id: id})
+      this.db.put(id, value, function(error) {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(value)
+        }
+      })
+    })
+  }
+  set(key, value) {
+    return this.db.put(key, value)
+  }
+  delete(key) {
+    return this.db.del(id)
+  }
 }
 
+let User = new Model('users')
 
-class User {
+async function main() {
+  const userA = await User.create({
+    firstName: "Bertrand",
+    lastName: "Chardon",
+    age: Math.ceil(Math.random() * 100),
+    height: 190,
+    weight: 80,
+    hobbies: ['twitter', 'running', 'cycling', 'programming', 'coffee']
+  })
 
-  static all(db) {
-    return db.createReadStream({gt: 'users/', lt: 'users/\xff'})
-  }
-
-  static where(db, query) {
-    return db.createReadStream(query)
-  }
+  const userB = await User.create({
+    firstName: "Gérard",
+    lastName: "Chardon",
+    age: Math.ceil(Math.random() * 100),
+    height: 190,
+    weight: 80,
+    hobbies: ['twitter', 'running', 'cycling', 'programming', 'coffee']
+  })
+  const userC = await User.create({
+    firstName: "Jean-Pierre",
+    lastName: "Chardon",
+    age: Math.ceil(Math.random() * 100),
+    height: 190,
+    weight: 80,
+    hobbies: ['twitter', 'running', 'cycling', 'programming', 'coffee']
+  })
+  User.pluck('age').on('data', data => {
+    console.log(data)
+  })
 }
 
 try {
@@ -37,3 +86,4 @@ try {
 } catch(error) {
   console.error(error)
 }
+
