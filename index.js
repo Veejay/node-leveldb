@@ -20,12 +20,21 @@ class Model {
   where(criteria) {
     return this.all
   }
-  pluck(attribute) {
-    // Get all the users
-    return this.db.createValueStream().pipe(through2.obj(function(chunk, encoding, callback){
-      this.push(chunk[attribute])
+  pluck(prop) {
+    let plucker = function(chunk, encoding, callback){
+      const value = chunk[prop]
+      if (value > 40 && value < 55) {
+        this.push(value)
+      }
+      // } else {
+      //   const defaultValue = {}
+      //   defaultValue[prop] = 999
+      //   this.push(Object.assign(chunk, defaultValue))
+      // }
       callback()  
-    }))
+    }
+    // Get all the users
+    return this.db.createValueStream().pipe(through2.obj(plucker))
   }
   create(data) {
     const id = uuid.v4()
