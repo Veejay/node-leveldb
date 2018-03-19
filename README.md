@@ -23,3 +23,11 @@ For example, to retrieve a collection of users meeting some criteria, one could 
   }
   db.createReadStream().pipe(through2.obj(userFilter)).on('data', data => {...}).on('error', error => {}).on('end', _ => {})
 ```
+
+### First impressions
+
+* API is extremely simple
+* API is usable through the main NodeJS paradigms (callbacks, promises, streams, async/await)
+* Patterns have emerged to make for the rather low-level handling of contiguous data (sublevels, \xfff, etc)
+* Healthy ecosystem
+* Strong/small core in C/C++, NodeJS shell around it
