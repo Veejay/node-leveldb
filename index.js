@@ -62,20 +62,17 @@ const app = require('express')()
 
 app.get('/users', (request, response) => {
   response.set('Content-Type', 'application/json')
-  const userStream = users.createReadStream({
-    gt: 'users!',
-    lt: 'users!~'
-  })
+  const userStream = users.createReadStream()
   userStream.on('data', user => {
     // Doesn't work because write expects String or Buffer
     // TODO: Explore a socket-based solution and try to stream the records as they come in
-    response.write(user)
+    response.write(JSON.stringify(user, null, 2))
   })
   userStream.on('error', error => {
     console.error(error)
   })
   userStream.on('end', event => {
-    res.status(200).send('Done')
+    response.end()
   })
   
   
