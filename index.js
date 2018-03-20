@@ -5,7 +5,7 @@ const uuid = require('uuid')
 const through2 = require('through2')
 const faker = require('faker')
 const http = require('http')
-
+const WebSocket = require('ws')
 const rnd = upper => {return Math.floor(Math.random() * upper)}
 
 function* userGenerator() {
@@ -58,27 +58,89 @@ try {
 
 const app = require('express')()
 
+app.get('/', (request, response) => {
+  response.set('Content-Type', 'text/html')
+  response.send(`
+    <!DOCTYPE>
+    <html>
+      <head>
+      </head>
+      <body>
+        <button class="getter">
+          Getter
+        </button>
+        <section class="users">
+          <h1>Users</h1>
+        </section>
 
-
-app.get('/users', (request, response) => {
-  response.set('Content-Type', 'application/json')
-  const userStream = users.createReadStream()
-  userStream.on('data', user => {
-    // Doesn't work because write expects String or Buffer
-    // TODO: Explore a socket-based solution and try to stream the records as they come in
-    response.write(JSON.stringify(user, null, 2))
-  })
-  userStream.on('error', error => {
-    console.error(error)
-  })
-  userStream.on('end', event => {
-    response.end()
-  })
-  
-  
+        
+        <script>
+          let socket = new WebSocket('ws://localhost:8080')
+          const userList = document.querySelector('.users')
+          socket.addEventListener('open', event => {
+            socket.send("users list")
+          })
+          socket.addEventListener('message', message => {
+            console.log(message)
+            const {firstName, lastName, age} = JSON.parse(message.data)
+            const user = [firstName, lastName, age].join(' ') + ' years old'
+            const div = document.createElement('div')
+            div.innerText = user
+            userList.appendChild(div)
+          })
+          document.querySelector('.getter').addEventListener('click', event => {
+            document.querySelector('.users').innerHTML = ''
+            socket.send("users list")
+          })
+        </script>
+        
+      </body>
+    </html>
+  `)
 })
 
-http.createServer(app).listen(8080, (error) => {
+// app.get('/users', (request, response) => {
+//   response.set('Content-Type', 'application/json')
+//   const userStream = users.createReadStream()
+//   // userStream.pipe(response)
+//   userStream.on('data', user => {
+//     // Doesn't work because write expects String or Buffer
+//     // TODO: Explore a socket-based solution and try to stream the records as they come in
+//     response.write(JSON.stringify(user, null, 2))
+//   })
+//   userStream.on('error', error => {
+//     console.error(error)
+//   })
+//   userStream.on('end', event => {
+//     response.end()
+//   })
+  
+  
+// })
+
+const server = http.createServer(app)
+const webSocketServer = new WebSocket.Server({ server })
+
+webSocketServer.on('connection', ws => {
+  ws.on('message', message => {
+    const userStream = users.createReadStream()
+    // userStream.pipe(response)
+    userStream.on('data', user => {
+      // Doesn't work because write expects String or Buffer
+      // TODO: Explore a socket-based solution and try to stream the records as they come in
+      console.log(user.value)
+      ws.send(JSON.stringify(user.value))
+    })
+    userStream.on('error', error => {
+      ws.send(error.toString())
+    })
+    userStream.on('end', event => {
+    })
+  })
+})
+
+
+server.listen(8080, (error) => {
   if (error) {
     console.error('Something happened')
   } else {
