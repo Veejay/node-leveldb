@@ -24,6 +24,14 @@ For example, to retrieve a collection of users meeting some criteria, one could 
   db.createReadStream().pipe(through2.obj(userFilter)).on('data', data => {...}).on('error', error => {}).on('end', _ => {})
 ```
 
+## Streaming response to the browser
+
+It's something that I've been willing to do for a long time now.
+Streaming the data directly from the database to the DOM through websockets and a good streaming database API.
+
+It's exactly what Node, modern browsers and LevelDB provide, making it easy to have everything click.
+I find the HTML part to be extremely jittery, see if building fragments wouldn't be more efficient.
+
 ### First impressions
 
 * API is extremely simple
