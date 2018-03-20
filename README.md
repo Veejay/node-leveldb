@@ -32,7 +32,12 @@ Streaming the data directly from the database to the DOM through websockets and 
 It's exactly what Node, modern browsers and LevelDB provide, making it easy to have everything click.
 I find the HTML part to be extremely jittery, see if building fragments wouldn't be more efficient.
 
-### First impressions
+## Notes
+
+The rendering of the HTML is minimal. There's nothing exciting about rendering a HTML template anyway past the usual rendering
+engines and I wanted to have an example running.
+
+## First impressions
 
 * API is extremely simple
 * API is usable through the main NodeJS paradigms (callbacks, promises, streams, async/await)
